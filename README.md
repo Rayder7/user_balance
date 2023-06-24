@@ -81,3 +81,56 @@ POSTGRES_PASSWORD=postgres
 DB_HOST=db
 DB_PORT=5432
 ```
+### Запуск:
+```
+docker-compose up -d
+```
+
+```
+http://127.0.0.1:8000/api/users/ - создаем пару пользователей
+```
+
+```
+http://127.0.0.1:8000/api/auth/token/login - получаем токен
+```
+Дальше удобнее использовать Postman:
+в Headers добавляем Authorization - Token <token>
+
+```
+http://127.0.0.1:8000/api/users/me/ - GET запрос - информация о пользователе
+
+```
+```
+http://127.0.0.1:8000/api/check_balance/ - GET запрос - Проверка баланса
+```
+
+```
+http://127.0.0.1:8000/api/action/ - GET запрос - Архив пополнений
+```
+
+```
+http://127.0.0.1:8000/api/action/ - POST запрос - Полполнить счет
+```
+Пример:
+```
+{
+    "user": "1",
+    "amount": 2000
+}
+```
+
+```
+http://127.0.0.1:8000/api/transfer/ - GET запрос - переводов
+```
+
+```
+http://127.0.0.1:8000/api/transfer/- POST запрос - перевод пользователю. Есть валидация, на amount < balance
+```
+Пример:
+```
+{
+    "from_user": "user",
+    "to_user": "user2",
+    "amount": 500
+}
+```
