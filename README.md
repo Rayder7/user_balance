@@ -20,9 +20,9 @@ git clone git@github.com:rayder7/user_balance.git
 
 
 ### Запуск:
-
-***docker-compose up -d***
-
+```
+docker-compose up -d
+```
 ```
 http://127.0.0.1:8000/api/users/ - создаем пару пользователей
 ```
