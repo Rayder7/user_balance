@@ -30,6 +30,7 @@ class UserCreateSerializer(djoser.serializers.UserCreateSerializer):
 class ActionSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
+        # TODO: для pytho 3 просто super()....
         super(ActionSerializer, self).__init__(*args, **kwargs)
         if 'request' in self.context:
             self.fields['user'].queryset = (
@@ -40,6 +41,7 @@ class ActionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Action
         fields = ('id', 'user', 'amount', 'date')
+        # TODO: если не ошибаюсь, id итак read_only.
         read_only_fields = ('id', 'date')
 
     def create(self, validated_data):
@@ -55,11 +57,13 @@ class ActionSerializer(serializers.ModelSerializer):
 
 
 class TransferSerializer(serializers.ModelSerializer):
+    # TODO: не очень понимаю, почему to_user / from_userr имеют разные имплементации.
     to_user = serializers.CharField()
     from_user = serializers.SlugRelatedField(
         slug_field='username',
         queryset=User.objects.all())
 
+    # TODO: где это используется?
     def get_from_user(self, obj):
         return obj.from_user.username
 

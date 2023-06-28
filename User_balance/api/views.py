@@ -31,9 +31,13 @@ class Check_balanceViewSet(viewsets.GenericViewSet,
     permission_classes = (IsAuthenticated, )
 
     def list(self, request, *args, **kwargs):
+        # TODO: `users` переменная содержит 1 элемент, значит `user`.
         users = request.user
         balance = users.balance
         balance_rub = User.check_balance(balance)
+        # TODO: так как это API, то нужно возвращать JSON:
+        #  {"balance": balance_rub}. Также непонятно зачем ты приводишь
+        #  баланс к int внутри форматирования строки.
         message = f"Ваш баланс равен {int(balance_rub)} рублей"
 
         return Response(message)
@@ -48,6 +52,9 @@ class ActionViewSet(viewsets.GenericViewSet,
     queryset = Action.objects.all()
 
     def get_queryset(self):
+        # TODO: некорретная фильтрация?
+        # username имеет тип CharField
+        # self.request.user имеет тип User
         users = User.objects.filter(username=self.request.user)
         return self.queryset.filter(user__in=users)
 
@@ -56,6 +63,8 @@ class ActionViewSet(viewsets.GenericViewSet,
         serializer.is_valid(raise_exception=True)
 
         try:
+            # TODO: у тебя уже есть request.user, зачем еще
+            #  фильтровать по username, а потом еще и пл pk?
             user = User.objects.filter(
                 username=self.request.user).get(pk=self.request.data['user'])
         except Exception:
@@ -88,10 +97,16 @@ class TransferViewSet(viewsets.GenericViewSet,
             from_user.balance = from_balance
             from_user.save()
 
+            # TODO: опасный блок. теоретичесски, если в БД у меня будет
+            #  None в балансе, то формула упадет. А операций выше с первым
+            #  юзером уже прошла устпешно- начислили просто так недег из
+            #  ниоткуда.
             to_balance = to_user.balance + amount
             to_user.balance = to_balance
             to_user.save()
 
+            # TODO: если произошла ошибка сети, то запись в историю не попадет,
+            #  а деньги уже перевелись.
             transfer = Transfer.objects.create(
                 from_user=from_user,
                 to_user=to_user,

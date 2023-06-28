@@ -6,5 +6,6 @@ class AuthorPermission(BasePermission):
        мог только их автор"""
 
     def has_object_permission(self, request, view, obj):
+        # TODO: идею понял, но не вижу чтобы ты ее применил.
         return (request.method in SAFE_METHODS
                 or obj.author == request.user)
