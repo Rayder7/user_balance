@@ -9,5 +9,6 @@ settings_include(
     "storage.py",
     "rest.py",
     "sentry.py",
+    "tz.py",
     optional("local_settings.py"),
 )

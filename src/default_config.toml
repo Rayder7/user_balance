@@ -9,7 +9,7 @@ csrf_trusted_origins = []
 name = "postgres"
 user = "postgres"
 password = "postgres"
-host = "db"
+host = "localhost"
 port = 5432
 
 [timezone]

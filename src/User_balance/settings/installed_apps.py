@@ -8,7 +8,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "django_filters",
-    "api",
     "drf_yasg",
     # project apps
     "apps.api",

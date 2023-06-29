@@ -1,28 +1,10 @@
-import djoser.serializers
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
-from .models import Action, Transfer, User
+from apps.api.models import Action, Transfer
+from apps.users.models import User
 
 
-class UserSerializer(djoser.serializers.UserSerializer):
-    """Сериализатор пользователя"""
-
-    class Meta:
-        model = User
-        fields = ("id", "username", "email", "balance")
-        validators = [
-            UniqueTogetherValidator(
-                queryset=User.objects.all(), fields=("username", "email")
-            )
-        ]
-
-
-class UserCreateSerializer(djoser.serializers.UserCreateSerializer):
-    """Сериализатор создания пользователя"""
-
-    class Meta:
-        model = User
-        fields = ("email", "username", "password", "balance")
+class UserSerializer(serializers.ModelSerializer):
+    pass
 
 
 class ActionSerializer(serializers.ModelSerializer):

@@ -1,18 +1,18 @@
 from django.db import transaction
 from rest_framework import status, viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from users.models import User
-from api.models import Action, Transfer
-from api.serializers import (
+from django.contrib.auth import get_user_model
+from apps.api.models import Action, Transfer
+from apps.api.serializers import (
     UserSerializer,
     ActionSerializer,
     TransferSerializer,
 )
 
+User = get_user_model()
 
 """ class UserViewSet(UserViewSet):
     queryset = User.objects.all()
