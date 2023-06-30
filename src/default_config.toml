@@ -1,0 +1,29 @@
+[base]
+secret_key = "django-insecure---b4hg1974_&(c6^1$23#!i*nmb-l!rra0u*hr^h1vnynx)a-6"
+debug = true
+allowed_hosts = ["*"]
+script_name = ''
+csrf_trusted_origins = []
+
+[database]
+name = "postgres"
+user = "postgres"
+password = "postgres"
+host = "localhost"
+port = 5432
+
+[timezone]
+name = "UTC"
+
+
+
+[storage]
+static_url = "/static/"
+media_url = "/media/"
+media_root = "cnd/media/"
+static_root = "cdn/static/"
+secure_links_secret = "insecure-mkjnhygtfdhgvjbknli"
+
+[sentry]
+dsn = ""
+environment = "dev"
