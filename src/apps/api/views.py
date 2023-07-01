@@ -48,8 +48,8 @@ class Check_balanceViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
 
     def list(self, request, *args, **kwargs):
         # TODO: `users` переменная содержит 1 элемент, значит `user`.
-        users = request.user
-        balance = users.balance
+        user = request.user
+        balance = user.balance
         #  balance_rub = User.check_balance(balance)
         # TODO: так как это API, то нужно возвращать JSON:
         #  {"balance": balance_rub}. Также непонятно зачем ты приводишь
