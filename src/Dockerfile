@@ -1,9 +1,12 @@
 FROM python:3.11
+RUN pip install pipenv 
 
 WORKDIR /app
+COPY Pipfile* ./
+
+RUN pipenv install --deploy --system
+
 
 COPY . .
-
-RUN pip install -r requirements.txt
 
 CMD ["gunicorn", "User_balance.wsgi:application", "--bind", "0:8000"]

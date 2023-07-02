@@ -6,12 +6,10 @@ services:
     restart: always
     volumes:
       - db_data:/var/lib/postgresql/data/
-    env_file:
-      - ./.env
     container_name: user_balance_db
   
   backend:
-    build: ./User_balance
+    build: ../src
     restart: always
     ports:
       - 8000:8000
@@ -20,8 +18,6 @@ services:
       - media_value:/app/media/
     depends_on:
       - db
-    env_file:
-      - ./.env
     container_name: user_balance_backend
 
 volumes:

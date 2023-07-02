@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 from django.db.models.functions import Lower
 
 
@@ -24,7 +24,7 @@ class User(AbstractUser):
             ),
             models.UniqueConstraint(
                 Lower("email"), name="unique_lowered_email"
-            )
+            ),
         ]
 
     def __str__(self) -> str:
