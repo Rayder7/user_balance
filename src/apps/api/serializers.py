@@ -1,16 +1,42 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 from apps.api.models import Action, Transfer
 from apps.users.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
-    pass
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'balance')
+
+
+class UserCreateSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            password=validated_data['password'],
+            email=validated_data['email'],
+        )
+
+        return user
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'password')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=User.objects.all(),
+                fields=('username', 'email')
+            )
+        ]
 
 
 class ActionSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         # TODO: для pytho 3 просто super()....
-        super(ActionSerializer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if "request" in self.context:
             self.fields["user"].queryset = self.fields["user"].queryset.filter(
                 username=self.context["view"].request.user
@@ -19,8 +45,7 @@ class ActionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Action
         fields = ("id", "user", "amount", "date")
-        # TODO: если не ошибаюсь, id итак read_only.
-        read_only_fields = ("id", "date")
+        read_only_fields = ("date",)
 
     def create(self, validated_data):
         if validated_data["user"].balance + validated_data["amount"] > 0:

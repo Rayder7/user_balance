@@ -29,3 +29,11 @@ class Transfer(models.Model):
     )
     amount = models.PositiveIntegerField()
     # TODO: а вот тут нет даты и времени операции, как есть у модели Action.
+
+    class Meta:
+        verbose_name = "трансфер"
+        verbose_name_plural = "Пользователи"
+
+
+    def __str__(self) -> str:
+        return self.amount
