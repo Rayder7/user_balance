@@ -19,7 +19,7 @@ git clone git@github.com:rayder7/user_balance.git
 ```
 
 
-### Запуск:
+### Запуск на пк:
 ***Зайти в директорию /src и использовать команды:***
 ```
 python manage.py makemigrations
@@ -28,6 +28,15 @@ python manage.py migrate
 
 python manage.py runserver
 ```
+### Запуск на docker-compose:
+***Зайти в директорию /etc и использовать команды:***
+```
+docker-compose up -d
+
+docker-compose exec backend python manage.py migrate
+
+```
+
 ```
 http://127.0.0.1:8000/api/sign-up/ - создаем пользователей
 ```

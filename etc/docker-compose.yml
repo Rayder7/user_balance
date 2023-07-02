@@ -4,8 +4,18 @@ services:
   db:
     image: postgres:14.0-alpine
     restart: always
+    environment:
+          - ENGINE=django.db.backends.postgresql_psycopg2
+          - NAME=postgres
+          - USER=postgres
+          - PASSWORD=postgres
+          - HOST="db"
+          - PORT=5432
+          - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - db_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
     container_name: user_balance_db
   
   backend:

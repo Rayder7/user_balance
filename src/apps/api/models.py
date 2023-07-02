@@ -23,7 +23,8 @@ class Transaction(models.Model):
     )
     amount = models.IntegerField()
     date = models.DateTimeField(auto_now_add=True)
-    type_oper = models.CharField(choices=TYPE_OPER_CHOICES, default="deposit")
+    type_oper = models.CharField(choices=TYPE_OPER_CHOICES, default="deposit",
+                                 max_length=100)
 
     def __str__(self) -> str:
         return (
