@@ -1,19 +1,20 @@
-from django.contrib.auth import authenticate, get_user_model, login, logout
-from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model, login, logout
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.authentication import (
     BasicAuthentication,
     SessionAuthentication,
 )
 from rest_framework.decorators import api_view
-from rest_framework.generics import CreateAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.api.models import Transaction
 from apps.api.serializers import (
     DepositSerializer,
     TransferSerializer,
+    LoginSerializer,
     UserCreateSerializer,
     UserSerializer,
 )
@@ -22,16 +23,16 @@ from apps.api.services import make_deposit, make_transfer
 User = get_user_model()
 
 
-@api_view(["POST"])
-def login_view(request):
-    username = request.data.get("username")
-    password = request.data.get("password")
-    user = authenticate(username=username, password=password)
-    if user is not None:
+class LoginApiView(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = LoginSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data.get("user")
         login(request, user)
-        return Response({"message": "Login successful"})
-    else:
-        return Response({"message": "Invalid login credentials"}, status=401)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
@@ -46,21 +47,14 @@ class UserCreateViewSet(CreateAPIView):
     permission_classes = (permissions.AllowAny,)
 
 
-class Check_balanceViewSet(viewsets.ViewSet):
+class CheckBalanceViewSet(RetrieveAPIView):
     serializer_class = UserSerializer
     permission_classes = (IsAuthenticated,)
-    authentication_classes = (BasicAuthentication, SessionAuthentication)
+    authentication_classes = (SessionAuthentication,)
 
-    def retrieve(self, request, pk=None):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, pk=request.user.id)
-        serializer = UserSerializer(user)
-        data = serializer.data
-        username = data["username"]
-        balance = data["balance"]
-        message = f"Баланс пользователя {username} равен {balance} рублей"
-
-        return Response({"message": message})
+    def retrieve(self, request, *args, **kwargs):
+        balance = request.user.balance
+        return Response({"balance": balance})
 
 
 class TransferViewSet(

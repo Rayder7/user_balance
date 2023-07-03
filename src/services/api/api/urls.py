@@ -2,11 +2,11 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from apps.api.views import (
-    Check_balanceViewSet,
+    CheckBalanceViewSet,
     DepositViewSet,
     TransferViewSet,
     UserCreateViewSet,
-    login_view,
+    LoginApiView,
     logout_view,
 )
 
@@ -20,11 +20,11 @@ router_v1.register("deposit", DepositViewSet, basename="deposit")
 urlpatterns = [
     path(
         "balance/",
-        Check_balanceViewSet.as_view({"get": "retrieve"}),
+        CheckBalanceViewSet.as_view(),
         name="balance",
     ),
     path("balance/", include(router_v1.urls)),
     path("sign-up/", UserCreateViewSet.as_view(), name="register"),
-    path("login/", login_view),
+    path("login/", LoginApiView.as_view()),
     path("logout/", logout_view),
 ]

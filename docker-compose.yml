@@ -19,7 +19,7 @@ services:
     container_name: user_balance_db
   
   backend:
-    build: ../src
+    build: .
     restart: always
     ports:
       - 8000:8000

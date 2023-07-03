@@ -1,8 +1,30 @@
 from rest_framework import serializers
+from django.contrib.auth import authenticate
 from rest_framework.validators import UniqueTogetherValidator
 
 from apps.api.models import Transaction
 from apps.users.models import User
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=50, write_only=True)
+    password = serializers.CharField(max_length=50, write_only=True)
+
+    def validate(self, data):
+        username = data.get("username", None)
+        password = data.get("password", None)
+
+        if username is None:
+            raise serializers.ValidationError(
+                "Требуется имя пользователя"
+            )
+        if password is None:
+            raise serializers.ValidationError(
+                "Требуется пароль"
+            )
+        user = authenticate(username=username, password=password)
+        data["user"] = user
+        return data
 
 
 class UserSerializer(serializers.ModelSerializer):

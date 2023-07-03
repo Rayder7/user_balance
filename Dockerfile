@@ -5,11 +5,11 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /app
 
-ADD Pipfile.lock Pipfile /app/
+COPY Pipfile Pipfile.lock ./
 
 RUN pip3 install pipenv==2022.8.24
 
 RUN pipenv install --ignore-pipfile --system --deploy
-COPY . /app
+COPY src/ .
 
 CMD ["gunicorn", "User_balance.wsgi:application", "--bind", "0:8000"]

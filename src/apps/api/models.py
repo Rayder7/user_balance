@@ -1,33 +1,30 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 User = get_user_model()
 
 
-TYPE_OPER_CHOICES = (
-    ("deposit", "DEPOSIT"),
-    ("transfer", "TRANSFER"),
-)
-
-
 class Transaction(models.Model):
+    class TypeOper(models.TextChoices):
+        DEPOSIT = "DP", _("deposit")
+        TRANSFER = "TR", _("transfer")
+
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="transaction_from"
     )
     participant = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name="transaction_to",
+        related_name="participants",
         null=True,
         blank=True,
     )
     amount = models.IntegerField()
     date = models.DateTimeField(auto_now_add=True)
-    type_oper = models.CharField(choices=TYPE_OPER_CHOICES, default="deposit",
-                                 max_length=100)
+    type_oper = models.CharField(choices=TypeOper.choices,
+                                 default=TypeOper.DEPOSIT,
+                                 max_length=20)
 
     def __str__(self) -> str:
-        return (
-            f"Пользователь {self.user} сделал {self.type_oper}"
-            f"на {self.amount} {self.participant}"
-        )
+        return f"{self.amount}"
