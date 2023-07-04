@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model, login, logout
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.authentication import (
-    BasicAuthentication,
     SessionAuthentication,
 )
 from rest_framework.decorators import api_view
@@ -64,7 +63,7 @@ class TransferViewSet(
     mixins.RetrieveModelMixin,
 ):
     serializer_class = TransferSerializer
-    authentication_classes = (BasicAuthentication, SessionAuthentication)
+    authentication_classes = (SessionAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = Transaction.objects.all()
 
@@ -93,7 +92,7 @@ class DepositViewSet(
 ):
     serializer_class = DepositSerializer
 
-    authentication_classes = (BasicAuthentication, SessionAuthentication)
+    authentication_classes = (SessionAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = Transaction.objects.all()
 
