@@ -31,7 +31,7 @@ class LoginApiView(APIView):
         serializer.is_valid(raise_exception=True)
         user = authenticate(
             username=request.data["username"],
-            password=request.data["password"]
+            password=request.data["password"],
         )
         login(request, user)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -82,8 +82,9 @@ class TransferViewSet(
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user,
-                                    type_oper="transfer")
+        return self.queryset.filter(
+            user=self.request.user, type_oper="transfer"
+        )
 
 
 class DepositViewSet(
@@ -111,5 +112,6 @@ class DepositViewSet(
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user,
-                                    type_oper="deposit")
+        return self.queryset.filter(
+            user=self.request.user, type_oper="deposit"
+        )
