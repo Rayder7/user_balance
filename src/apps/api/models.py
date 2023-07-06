@@ -22,9 +22,9 @@ class Transaction(models.Model):
     )
     amount = models.IntegerField()
     date = models.DateTimeField(auto_now_add=True)
-    type_oper = models.CharField(choices=TypeOper.choices,
-                                 default=TypeOper.DEPOSIT,
-                                 max_length=20)
+    type_oper = models.CharField(
+        choices=TypeOper.choices, default=TypeOper.DEPOSIT, max_length=20
+    )
 
     def __str__(self) -> str:
-        return f"{self.amount}"
+        return self.amount

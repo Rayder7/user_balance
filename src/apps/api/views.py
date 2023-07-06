@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model, login, logout
+from django.contrib.auth import authenticate, get_user_model, login, logout
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.authentication import (
     SessionAuthentication,
@@ -29,7 +29,10 @@ class LoginApiView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data.get("user")
+        user = authenticate(
+            username=request.data["username"],
+            password=request.data["password"]
+        )
         login(request, user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -51,9 +54,8 @@ class CheckBalanceViewSet(RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (SessionAuthentication,)
 
-    def retrieve(self, request, *args, **kwargs):
-        balance = request.user.balance
-        return Response({"balance": balance})
+    def get_object(self):
+        return self.request.user
 
 
 class TransferViewSet(
@@ -80,8 +82,8 @@ class TransferViewSet(
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
-        user = User.objects.filter(username=self.request.user.username)
-        return self.queryset.filter(user__in=user, type_oper="transfer")
+        return self.queryset.filter(user=self.request.user,
+                                    type_oper="transfer")
 
 
 class DepositViewSet(
@@ -109,5 +111,5 @@ class DepositViewSet(
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
-        user = User.objects.filter(username=self.request.user.username)
-        return self.queryset.filter(user__in=user, type_oper="deposit")
+        return self.queryset.filter(user=self.request.user,
+                                    type_oper="deposit")

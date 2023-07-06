@@ -7,7 +7,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "django_filters",
-    "drf_yasg",
+    "drf_spectacular",
+    'drf_spectacular_sidecar',
     # project apps
     "apps.api",
     "apps.users",
