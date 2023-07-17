@@ -1,6 +1,5 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.db.models.functions import Lower
+from django.db import models
 
 
 class User(AbstractUser):
@@ -20,11 +19,11 @@ class User(AbstractUser):
         verbose_name_plural = "Пользователи"
         constraints = [
             models.UniqueConstraint(
-                Lower("username"), name="unique_lowered_username"
+                fields=["username"], name="unique_lowered_username"
             ),
             models.UniqueConstraint(
-                Lower("email"), name="unique_lowered_email"
-            )
+                fields=["email"], name="unique_lowered_email"
+            ),
         ]
 
     def __str__(self) -> str:

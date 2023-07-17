@@ -1,39 +1,30 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 User = get_user_model()
 
 
-# TODO: Название модели звучик как "Действие", но ничего о перемещении денег.
-class Action(models.Model):
-    """Модель отслеживания пополнения баланса."""
+class Transaction(models.Model):
+    class TypeOper(models.TextChoices):
+        DEPOSIT = "DP", _("deposit")
+        TRANSFER = "TR", _("transfer")
 
-    amount = models.PositiveIntegerField()
-    date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="actions"
+        User, on_delete=models.CASCADE, related_name="transaction_from"
     )
-
-
-# TODO: тут лучше, но для того чтобы отобразить список действий  сбалансом,
-#  у тебя идет явное деление на две сущности "пополлнение мной" и "перевод"
-#  - возможно имело смысл сделать одну моделт и добавить тип операции.
-class Transfer(models.Model):
-    """Модель перевода денег."""
-
-    from_user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="from_user"
+    participant = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="participants",
+        null=True,
+        blank=True,
     )
-    to_user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="to_user"
+    amount = models.IntegerField()
+    date = models.DateTimeField(auto_now_add=True)
+    type_oper = models.CharField(
+        choices=TypeOper.choices, default=TypeOper.DEPOSIT, max_length=20
     )
-    amount = models.PositiveIntegerField()
-    # TODO: а вот тут нет даты и времени операции, как есть у модели Action.
-
-    class Meta:
-        verbose_name = "трансфер"
-        verbose_name_plural = "Пользователи"
-
 
     def __str__(self) -> str:
         return self.amount

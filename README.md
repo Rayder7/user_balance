@@ -19,55 +19,73 @@ git clone git@github.com:rayder7/user_balance.git
 ```
 
 
-### Запуск:
+### Запуск на пк:
+***Зайти в директорию /src и использовать команды:***
+```
+python manage.py makemigrations
+
+python manage.py migrate
+
+python manage.py runserver
+```
+### Запуск на docker-compose:
+***Зайти в директорию /etc и использовать команды:***
 ```
 docker-compose up -d
-```
-```
-http://127.0.0.1:8000/api/users/ - создаем пару пользователей
+
+docker-compose exec backend python manage.py migrate
+
 ```
 
 ```
-http://127.0.0.1:8000/api/auth/token/login - получаем токен
-```
-***Дальше удобнее использовать Postman:***
-***в Headers добавляем Authorization - Token <token>***
-
-```
-http://127.0.0.1:8000/api/users/me/ - GET запрос - информация о пользователе
-
-```
-```
-http://127.0.0.1:8000/api/check_balance/ - GET запрос - Проверка баланса
+http://127.0.0.1:8000/api/sign-up/ - создаем пользователей
 ```
 
 ```
-http://127.0.0.1:8000/api/action/ - GET запрос - Архив пополнений
+http://127.0.0.1:8000/api/login/ - POST запрос на вход пользователя
+```
+Пример:
+```
+    {
+        "username": "user",
+        "password": 12345678
+    }
+```
+```
+http://127.0.0.1:8000/api/logout/ - POST запрос на выход пользователя
 ```
 
 ```
-http://127.0.0.1:8000/api/action/ - POST запрос - Полполнить счет
+http://127.0.0.1:8000/api/balance/ - GET запрос - Проверка баланса
+```
+
+```
+http://127.0.0.1:8000/api/balance/transfer/ - GET запрос - Архив переводов
+```
+
+```
+http://127.0.0.1:8000/api/balance/transfer/ - POST запрос - оформить перевод
 ```
 Пример:
 ```
 {
-    "user": "1",
+    "user": "user",
+    "partisipant": "user2"
     "amount": 2000
 }
 ```
 
 ```
-http://127.0.0.1:8000/api/transfer/ - GET запрос - переводов
+http://127.0.0.1:8000/api/balance/deposit/ - GET запрос - архив пополнений
 ```
 
 ```
-http://127.0.0.1:8000/api/transfer/- POST запрос - перевод пользователю. Есть валидация, на amount < balance
+http://127.0.0.1:8000/api/balance/deposit/ - POST запрос - пополнения счета
 ```
 Пример:
 ```
 {
-    "from_user": "user",
-    "to_user": "user2",
-    "amount": 500
+    "user": "user",
+    "amount": 50
 }
 ```

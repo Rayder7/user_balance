@@ -1,39 +1,46 @@
-from django.db import transaction
-from rest_framework import (status, viewsets, mixins,
-                            permissions)
-from django.contrib.auth import authenticate, login, logout
-from rest_framework.generics import CreateAPIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from django.contrib.auth import get_user_model
-from apps.api.models import Action, Transfer
-from apps.api.serializers import (
-    UserSerializer,
-    UserCreateSerializer,
-    ActionSerializer,
-    TransferSerializer,
+from django.contrib.auth import authenticate, get_user_model, login, logout
+from rest_framework import mixins, permissions, status, viewsets
+from rest_framework.authentication import (
+    SessionAuthentication,
 )
+from rest_framework.decorators import api_view
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from apps.api.models import Transaction
+from apps.api.serializers import (
+    DepositSerializer,
+    TransferSerializer,
+    LoginSerializer,
+    UserCreateSerializer,
+    UserSerializer,
+)
+from apps.api.services import make_deposit, make_transfer
 
 User = get_user_model()
 
 
-@api_view(['POST'])
-def login_view(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-    user = authenticate(username=username, password=password)
-    if user is not None:
+class LoginApiView(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = LoginSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = authenticate(
+            username=request.data["username"],
+            password=request.data["password"],
+        )
         login(request, user)
-        return Response({'message': 'Login successful'})
-    else:
-        return Response({'message': 'Invalid login credentials'}, status=401)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 def logout_view(request):
     logout(request)
-    return Response({'message': 'Logout successful'})
+    return Response({"message": "Logout successful"})
 
 
 class UserCreateViewSet(CreateAPIView):
@@ -42,54 +49,14 @@ class UserCreateViewSet(CreateAPIView):
     permission_classes = (permissions.AllowAny,)
 
 
-class Check_balanceViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+class CheckBalanceViewSet(RetrieveAPIView):
     serializer_class = UserSerializer
     permission_classes = (IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
 
-    def list(self, request, *args, **kwargs):
-        # TODO: `users` переменная содержит 1 элемент, значит `user`.
-        user = request.user
-        balance = user.balance
-        #  balance_rub = User.check_balance(balance)
-        # TODO: так как это API, то нужно возвращать JSON:
-        #  {"balance": balance_rub}. Также непонятно зачем ты приводишь
-        #  баланс к int внутри форматирования строки.
-        message = f"Ваш баланс равен {int(balance)} рублей"
+    def get_object(self):
+        return self.request.user
 
-        return Response(message)
-
-
-class ActionViewSet(
-    viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin
-):
-    serializer_class = ActionSerializer
-    permission_classes = (IsAuthenticated,)
-    queryset = Action.objects.all()
-
-    def get_queryset(self):
-        # TODO: некорретная фильтрация?
-        # username имеет тип CharField
-        # self.request.user имеет тип User
-        users = User.objects.filter(username=self.request.user)
-        return self.queryset.filter(user__in=users)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        try:
-            # TODO: у тебя уже есть request.user, зачем еще
-            #  фильтровать по username, а потом еще и пл pk?
-            user = User.objects.filter(username=self.request.user).get(
-                pk=self.request.data["user"]
-            )
-        except Exception:
-            content = {"error": "нет такого юзера"}
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer.save(user=user)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class TransferViewSet(
@@ -99,48 +66,53 @@ class TransferViewSet(
     mixins.RetrieveModelMixin,
 ):
     serializer_class = TransferSerializer
-    #  authentication_classes = (TokenAuthentication,)
+    authentication_classes = (SessionAuthentication,)
     permission_classes = (IsAuthenticated,)
-    queryset = Transfer.objects.all()
-
-    def make_transfer(self, from_user, to_user, amount):
-        if from_user.balance < amount:
-            raise (ValueError("Недостаточно денег на счету"))
-        if from_user == to_user:
-            raise (ValueError("Нельзя отправить деньги себе"))
-
-        with transaction.atomic():
-            from_balance = from_user.balance - amount
-            from_user.balance = from_balance
-            from_user.save()
-
-            # TODO: опасный блок. теоретичесски, если в БД у меня будет
-            #  None в балансе, то формула упадет. А операций выше с первым
-            #  юзером уже прошла устпешно- начислили просто так недег из
-            #  ниоткуда.
-            to_balance = to_user.balance + amount
-            to_user.balance = to_balance
-            to_user.save()
-
-            # TODO: если произошла ошибка сети, то запись в историю не попадет,
-            #  а деньги уже перевелись.
-            transfer = Transfer.objects.create(
-                from_user=from_user, to_user=to_user, amount=amount
-            )
-        return transfer
+    queryset = Transaction.objects.all()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         try:
-            self.make_transfer(**serializer.validated_data)
+            make_transfer(**serializer.validated_data)
         except ValueError:
-            content = {"error": "Недостаточно денег"}
+            content = {"error": "Операция невыполнена, ОШИБКА в запросе"}
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
-        user = User.objects.filter(username=self.request.user)
-        return self.queryset.filter(from_user__in=user)
+        return self.queryset.filter(
+            user=self.request.user, type_oper="transfer"
+        )
+
+
+class DepositViewSet(
+    viewsets.GenericViewSet,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+):
+    serializer_class = DepositSerializer
+
+    authentication_classes = (SessionAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    queryset = Transaction.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            make_deposit(**serializer.validated_data)
+        except ValueError:
+            content = {"error": "Сумма пополнения должна быть больше 0"}
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def get_queryset(self):
+        return self.queryset.filter(
+            user=self.request.user, type_oper="deposit"
+        )

@@ -1,13 +1,19 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-from apps.api.models import Action, Transfer
+
+from apps.api.models import Transaction
 from apps.users.models import User
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=50, write_only=True)
+    password = serializers.CharField(max_length=50, write_only=True)
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'balance')
+        fields = ("balance",)
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -15,74 +21,60 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User.objects.create_user(
-            username=validated_data['username'],
-            password=validated_data['password'],
-            email=validated_data['email'],
+            username=validated_data["username"],
+            password=validated_data["password"],
+            email=validated_data["email"],
         )
 
         return user
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password')
+        fields = ("id", "username", "email", "password")
         validators = [
             UniqueTogetherValidator(
-                queryset=User.objects.all(),
-                fields=('username', 'email')
+                queryset=User.objects.all(), fields=("username", "email")
             )
         ]
 
 
-class ActionSerializer(serializers.ModelSerializer):
+class TransferSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = ("id", "user", "participant", "amount", "date", "type_oper")
+        read_only_fields = ("date", "type_oper")
+
     def __init__(self, *args, **kwargs):
-        # TODO: для pytho 3 просто super()....
         super().__init__(*args, **kwargs)
         if "request" in self.context:
             self.fields["user"].queryset = self.fields["user"].queryset.filter(
-                username=self.context["view"].request.user
+                username=self.context["view"].request.user.username
             )
-
-    class Meta:
-        model = Action
-        fields = ("id", "user", "amount", "date")
-        read_only_fields = ("date",)
-
-    def create(self, validated_data):
-        if validated_data["user"].balance + validated_data["amount"] > 0:
-            validated_data["user"].balance += validated_data["amount"]
-            validated_data["user"].save()
-        else:
-            raise serializers.ValidationError(("отсутствует сумма пополнения"))
-
-        return super(ActionSerializer, self).create(validated_data)
-
-
-class TransferSerializer(serializers.ModelSerializer):
-    # TODO: не очень понимаю, почему to_user / from_userr имеют разные имплементации.
-    to_user = serializers.CharField()
-    from_user = serializers.SlugRelatedField(
-        slug_field="username", queryset=User.objects.all()
-    )
-
-    # TODO: где это используется?
-    def get_from_user(self, obj):
-        return obj.from_user.username
-
-    def __init__(self, *args, **kwargs):
-        super(TransferSerializer, self).__init__(*args, **kwargs)
-        if "request" in self.context:
-            self.fields["from_user"].queryset = self.fields[
-                "from_user"
-            ].queryset.filter(username=self.context["request"].user.username)
 
     def validate(self, data):
         try:
-            data["to_user"] = User.objects.get(username=data["to_user"])
+            data["user"] = User.objects.get(username=data["user"])
         except Exception:
             raise serializers.ValidationError("Нет такого пользователя")
         return data
 
+
+class DepositSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Transfer
-        fields = ("id", "from_user", "to_user", "amount")
-        read_only_fields = ("id",)
+        model = Transaction
+        fields = ("id", "user", "participant", "amount", "date", "type_oper")
+        read_only_fields = ("date", "participant", "type_oper")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "request" in self.context:
+            self.fields["user"].queryset = self.fields["user"].queryset.filter(
+                username=self.context["view"].request.user.username
+            )
+
+    def validate(self, data):
+        try:
+            data["user"] = User.objects.get(username=data["user"])
+        except Exception:
+            raise serializers.ValidationError("Нет такого пользователя")
+        return data

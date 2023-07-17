@@ -1,29 +1,30 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+
 from apps.api.views import (
-    ActionViewSet,
-    Check_balanceViewSet,
+    CheckBalanceViewSet,
+    DepositViewSet,
     TransferViewSet,
     UserCreateViewSet,
-    login_view,
-    logout_view
+    LoginApiView,
+    logout_view,
 )
 
 app_name = "api"
 
 router_v1 = DefaultRouter()
-router_v1.register("action", ActionViewSet)
-router_v1.register("transfer", TransferViewSet)
+router_v1.register("transfer", TransferViewSet, basename="transfer")
+router_v1.register("deposit", DepositViewSet, basename="deposit")
 
 
 urlpatterns = [
-    path("", include(router_v1.urls)),
     path(
-        "check_balance/",
-        Check_balanceViewSet.as_view({"get": "list"}),
-        name="check_balance",
+        "balance/",
+        CheckBalanceViewSet.as_view(),
+        name="balance",
     ),
-    path('sign-up/', UserCreateViewSet.as_view(), name="login"),
-    path('login/', login_view),
-    path('logout/', logout_view),
+    path("balance/", include(router_v1.urls)),
+    path("sign-up/", UserCreateViewSet.as_view(), name="register"),
+    path("login/", LoginApiView.as_view()),
+    path("logout/", logout_view),
 ]
