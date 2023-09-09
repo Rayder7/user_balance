@@ -1,6 +1,8 @@
 # Опиание ТЗ.
 ### Технологии
 ![Python](https://img.shields.io/badge/Python-3.11-green)
+![Django](https://img.shields.io/badge/Django-3.2-blue)
+![DRF](https://img.shields.io/badge/DRF-3.14-red)
 
 ТЗ:
 - 1.Разработать API для работы со балансом пользователя и перемещении денег между пользователями системы
